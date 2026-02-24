@@ -31,14 +31,15 @@ description: Tauri v2 项目开发助手 - 提供 CLI 项目管理、最佳实�
 # 收集完毕后，使用如下非交互式命令创建：
 pnpm create tauri-app@latest <项目名称> --manager <包管理器> --template <UI模板> --identifier <唯一标识符> -y
 
-# 开发
-cd src-tauri && cargo tauri dev
+# 开发 (建议在项目根目录下使用包管理器运行)
+npm run tauri dev
+# 若使用 pnpm 则为: pnpm tauri dev
 
 # 构建
-cargo tauri build
+npm run tauri build
 
-# 添加插件
-cargo tauri add fs
+# 添加官方插件
+npx tauri add fs
 ```
 
 ### 文件结构
@@ -66,9 +67,19 @@ project/
 - 开发命令 (`dev`, `android dev`, `ios dev`)
 - 构建命令 (`build`, `android build`, `ios build`)
 - 打包命令 (`bundle`)
-- 配置管理 (`tauri.conf.json`, `Cargo.toml`)
 - 常见工作流和故障排除
 
+### 配置文件解析
+
+参考 [config-reference.md](references/config-reference.md) 获取 `tauri.conf.json` 的详细解析与指南：
+
+- 基础信息配置
+- 构建行为 (`build` 节点)
+- 应用窗口与安全 (`app` 节点)
+- 平台打包选项 (`bundle` 节点)
+- 插件参数配置 (`plugins` 节点)
+- 环境区分配置 (特定平台配置)
+- v1 迁移至 v2 的配置变更点
 ### 最佳实践
 
 参考 [best-practices.md](references/best-practices.md) 获取架构和安全指南：
@@ -185,5 +196,6 @@ pub enum AppError {
 ## 参考链接
 
 - [Tauri v2 文档](https://v2.tauri.app/)
+- [Tauri v2 配置文件参考](https://v2.tauri.app/reference/config/)
 - [Rust 文档](https://doc.rust-lang.org/)
 - [Tauri GitHub](https://github.com/tauri-apps/tauri)

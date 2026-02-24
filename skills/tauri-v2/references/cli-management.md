@@ -42,24 +42,6 @@ cargo create-tauri-app my-app --manager cargo --template vanilla-ts --identifier
 
 支持的模板 (`--template`): `vanilla`, `vanilla-ts`, `vue`, `vue-ts`, `svelte`, `svelte-ts`, `react`, `react-ts`, `solid`, `solid-ts`, `yew`, `leptos`, `sycamore`, `angular`, `preact`, `preact-ts`, `blazor`, `dioxus`
 
-#### 方式 2: 手动初始化现有项目
-
-```bash
-# 安装 Tauri CLI
-npm install -D @tauri-apps/cli@latest
-
-# 初始化 Tauri
-npx tauri init
-```
-
-初始化配置项：
-- App 名称
-- Window 标题
-- Web 资源目录 (如 `dist` 或 `../dist`)
-- Dev server URL (如 `http://localhost:5173`)
-- Dev 命令 (如 `npm run dev`)
-- Build 命令 (如 `npm run build`)
-
 ## CLI 命令详解
 
 ### 开发命令
