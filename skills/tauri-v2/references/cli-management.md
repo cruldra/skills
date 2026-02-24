@@ -16,24 +16,31 @@
 
 #### 方式 1: 使用 create-tauri-app (推荐)
 
-快速创建预配置的项目模板：
+快速创建预配置的项目模板。**注意：自动化或 Agent 运行时，请务必使用非交互式命令，因为交互式的 CLI 会导致自动化任务阻塞或失败。**
+
+在自动化运行前，请向用户收集以下参数：
+1. **项目名称** (`<PROJECTNAME>`)
+2. **包管理器** (`--manager`: `pnpm`, `npm`, `yarn`, `cargo`, `bun` 等)
+3. **UI 模板** (`--template`: `vanilla-ts`, `vue-ts`, `svelte-ts`, `react-ts`, `solid-ts` 等)
+4. **唯一标识符** (`--identifier`: 例如 `com.example.app`)
+
+**非交互式创建命令示例：**
 
 ```bash
+# pnpm
+pnpm create tauri-app@latest my-app --manager pnpm --template react-ts --identifier com.example.app -y
+
 # npm
-npm create tauri-app@latest
+npm create tauri-app@latest my-app --manager npm --template vue-ts --identifier com.example.app -y
 
 # yarn
-yarn create tauri-app
-
-# pnpm
-pnpm create tauri-app
+yarn create tauri-app my-app --manager yarn --template svelte-ts --identifier com.example.app -y
 
 # Cargo
-cargo install create-tauri-app --locked
-cargo create-tauri-app
+cargo create-tauri-app my-app --manager cargo --template vanilla-ts --identifier com.example.app -y
 ```
 
-支持的模板：Vanilla、Vue、Svelte、React、Solid、Angular、Preact、Yew、Leptos、Sycamore
+支持的模板 (`--template`): `vanilla`, `vanilla-ts`, `vue`, `vue-ts`, `svelte`, `svelte-ts`, `react`, `react-ts`, `solid`, `solid-ts`, `yew`, `leptos`, `sycamore`, `angular`, `preact`, `preact-ts`, `blazor`, `dioxus`
 
 #### 方式 2: 手动初始化现有项目
 
@@ -286,8 +293,8 @@ tauri-build = { version = "2", features = [] }
 ### 1. 新项目完整流程
 
 ```bash
-# 1. 创建项目
-npm create tauri-app@latest my-app
+# 1. 创建项目 (非交互式)
+pnpm create tauri-app@latest my-app --manager pnpm --template react-ts --identifier com.example.app -y
 cd my-app
 
 # 2. 安装依赖

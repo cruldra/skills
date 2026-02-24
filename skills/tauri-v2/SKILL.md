@@ -22,8 +22,14 @@ description: Tauri v2 项目开发助手 - 提供 CLI 项目管理、最佳实�
 ### 核心命令
 
 ```bash
-# 创建项目
-npm create tauri-app@latest
+# 创建项目 (自动化环境中必须使用非交互式命令)
+# 注意：在使用自动化工具（如 Agent）创建项目时，请先向用户收集以下参数：
+# 1. 项目名称 (<PROJECTNAME>)
+# 2. 包管理器 (--manager: pnpm, npm, yarn, cargo 等)
+# 3. UI 模板 (--template: react-ts, vue-ts, vanilla, svelte-ts 等)
+# 4. 唯一标识符 (--identifier: com.your.app)
+# 收集完毕后，使用如下非交互式命令创建：
+pnpm create tauri-app@latest <项目名称> --manager <包管理器> --template <UI模板> --identifier <唯一标识符> -y
 
 # 开发
 cd src-tauri && cargo tauri dev
