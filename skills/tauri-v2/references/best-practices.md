@@ -59,6 +59,14 @@ fn main() {
 }
 ```
 
+> **⚠️ 重要警告：命令函数禁止直接定义在 `lib.rs` / `main.rs` 中**
+>
+> Tauri 的 `#[tauri::command]` 过程宏和 `generate_handler!` 宏都会在当前作用域生成名为 `__cmd__<fn_name>` 的内部宏。当命令函数与 `generate_handler!` 处于同一 crate root 文件（`lib.rs` 或 `main.rs`）时，两个同名宏发生冲突，导致编译错误 `E0255: the name '__cmd__<fn_name>' is defined multiple times`。
+>
+> 这是 **Tauri 所有版本（1.x ~ 2.x）的已知架构限制**，参见 [GitHub Issue #3198](https://github.com/tauri-apps/tauri/issues/3198)、[#9362](https://github.com/tauri-apps/tauri/issues/9362)。
+>
+> **强制规则**: 所有 `#[tauri::command]` 函数必须定义在独立子模块（如 `commands.rs` 或 `commands/mod.rs`）中，在 `generate_handler!` 中通过 `commands::fn_name` 路径引用。上方示例即为正确模式。
+
 ## 命令设计模式
 
 ### 命令函数规范

@@ -193,6 +193,31 @@ pub enum AppError {
 - 异步操作避免阻塞主线程
 - 前端使用虚拟列表处理大数据
 
+### `__cmd__` 宏重复定义 (E0255)
+
+**症状**: 编译报错 `the name '__cmd__greet' is defined multiple times (E0255)`
+
+**原因**: `#[tauri::command]` 宏和 `generate_handler!` 宏都会生成 `__cmd__<fn_name>` 内部宏。当 command 函数直接定义在 `lib.rs` 或 `main.rs` 中，且同一文件调用了 `generate_handler!` 时，两者在同一 crate root 作用域内产生命名冲突。这是 **Tauri 已知的架构限制**（所有版本 1.x ~ 2.x 均受影响）。
+
+**解决方案**: 将所有 `#[tauri::command]` 函数移到子模块中（如 `commands.rs`），在 `generate_handler!` 中使用完整路径引用：
+
+```rust
+// src-tauri/src/lib.rs (或 main.rs)
+mod commands;
+
+pub fn run() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            commands::greet,
+            commands::open_link,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+> **注意**: 即使函数不加 `pub`，只要它带有 `#[tauri::command]` 并且与 `generate_handler!` 在同一文件，就会产生此冲突。务必始终将命令函数放在独立子模块中。
+
 ## 参考链接
 
 - [Tauri v2 文档](https://v2.tauri.app/)
