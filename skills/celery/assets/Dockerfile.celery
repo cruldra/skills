@@ -1,0 +1,41 @@
+# ── Celery 通用镜像 ────────────────────────────────────────────────────
+# 适用于：Worker、Beat、Flower
+# 通过 docker-compose 传入不同的 command 来启动不同模式
+
+FROM python:3.12-slim AS base
+
+LABEL maintainer="Cruldra" \
+      description="智能销售助手 - Celery 通用镜像 (Worker/Beat/Flower)"
+
+# 系统依赖
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# 安装 uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+WORKDIR /app
+
+# 先复制依赖声明，利用 Docker 缓存层
+COPY backend/pyproject.toml backend/uv.lock* ./
+
+# 复制本地依赖包 wecom-sdk（uv.lock 中期望它在 ../wecom-sdk）
+COPY wecom-sdk/ /wecom-sdk/
+
+# 安装生产依赖（冻结版本，跳过 dev 依赖）
+RUN uv sync --frozen --no-dev
+
+# 复制源码
+COPY backend/src/ ./src/
+
+# 非 root 用户运行（创建 home 目录供 uv 缓存使用）
+RUN useradd -m -s /bin/false appuser && \
+    chown -R appuser:appuser /app /wecom-sdk
+USER appuser
+
+# 设置 uv 缓存目录
+ENV UV_CACHE_DIR=/home/appuser/.cache/uv
+
+# 默认启动 Worker（可通过 docker-compose 覆盖）
+CMD ["uv", "run", "celery", "-A", "smart_sales.celery_app", "worker", "--loglevel=info", "--concurrency=4"]
