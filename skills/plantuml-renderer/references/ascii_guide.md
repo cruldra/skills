@@ -1,10 +1,3 @@
----
-name: plantuml-ascii
-description: "Generate ASCII art diagrams using PlantUML text mode. Use when user asks to create ASCII diagrams, text-based diagrams, terminal-friendly diagrams, or mentions plantuml ascii, text diagram, ascii art diagram. Supports: Converting PlantUML diagrams to ASCII art, Creating sequence diagrams, class diagrams, flowcharts in ASCII format, Generating Unicode-enhanced ASCII art with -utxt flag"
-license: MIT
-allowed-tools: Bash, Write, Read
----
-
 # PlantUML ASCII Art Diagram Generator
 
 ## Overview
@@ -20,19 +13,6 @@ PlantUML can generate diagrams as plain text (ASCII art) instead of images. This
 - Documentation that needs to be version-controlled
 - Environments where graphical tools aren't available
 
-## Installation
-
-```bash
-# macOS
-brew install plantuml
-
-# Linux (varies by distro)
-sudo apt-get install plantuml  # Ubuntu/Debian
-sudo yum install plantuml      # RHEL/CentOS
-
-# Or download JAR directly
-wget https://github.com/plantuml/plantuml/releases/download/v1.2024.0/plantuml-1.2024.0.jar
-```
 
 ## Output Formats
 
@@ -43,19 +23,7 @@ wget https://github.com/plantuml/plantuml/releases/download/v1.2024.0/plantuml-1
 
 ## Basic Workflow
 
-### 1. Create PlantUML Diagram File
-
-```plantuml
-@startuml
-participant Bob
-actor Alice
-
-Bob -> Alice : hello
-Alice -> Bob : Is it ok?
-@enduml
-```
-
-### 2. Generate ASCII Art
+### 1. Generate ASCII Art
 
 ```bash
 # Standard ASCII output
@@ -69,7 +37,7 @@ java -jar plantuml.jar -txt diagram.puml
 java -jar plantuml.jar -utxt diagram.puml
 ```
 
-### 3. View Output
+### 2. View Output
 
 Output is saved as `diagram.atxt` (ASCII) or `diagram.utxt` (Unicode).
 
@@ -215,18 +183,6 @@ plantuml -txt -v diagram.puml
 
 # Specify charset
 plantuml -txt -charset UTF-8 diagram.puml
-```
-
-## Ant Task Integration
-
-```xml
-<target name="generate-ascii">
-  <plantuml dir="./src" format="txt" />
-</target>
-
-<target name="generate-unicode-ascii">
-  <plantuml dir="./src" format="utxt" />
-</target>
 ```
 
 ## Tips for Better ASCII Diagrams
