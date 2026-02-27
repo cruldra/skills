@@ -1,0 +1,9 @@
+{
+  "name": "vue-ts-pnpm",
+  "description": "Vue 3 + TypeScript + pnpm",
+  "framework": "vue",
+  "language": "typescript",
+  "packageManager": "pnpm",
+  "template": "vue-ts",
+  "createdAt": "2024-01-01"
+}

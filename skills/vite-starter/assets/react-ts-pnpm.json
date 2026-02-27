@@ -1,0 +1,9 @@
+{
+  "name": "react-ts-pnpm",
+  "description": "React + TypeScript + pnpm + SWC（推荐大型项目）",
+  "framework": "react",
+  "language": "typescript",
+  "packageManager": "pnpm",
+  "template": "react-swc-ts",
+  "createdAt": "2024-01-01"
+}
