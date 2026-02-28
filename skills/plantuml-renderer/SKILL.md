@@ -47,7 +47,17 @@ description: Use when the user wants to render PlantUML diagrams from pasted tex
      - 如果输入是粘贴文本：`output.<format>`
    - 若一个输入中有多个 `@startuml` 块，PlantUML 可能按 `_001`、`_002` 追加后缀输出，属于正常行为。
 
-6. **ASCII 文本格式特例**
+6. **清理中间文件**
+   - 渲染完成后，删除过程中产生的所有中间文件，仅保留最终目标输出文件。
+   - 需清理的中间文件包括：
+     - 为粘贴文本输入临时创建的 `.puml` 文件。
+     - PlantUML 渲染过程中产生的临时文件或辅助文件（如 `.cmapx` 等）。
+   - **不得删除**的文件：
+     - 用户原始输入文件（无论是 `.puml`、`.md` 还是其他格式）。
+     - 最终目标输出文件（如 `.svg`、`.png`、`.atxt`、`.utxt`）。
+   - 清理前应先确认目标输出文件已成功生成。
+
+7. **ASCII 文本格式特例**
    - 当输出格式是 `txt` 或 `utxt`（纯文本图）时，必须参考：
      - `./references/ascii_guide.md`
    - 输出扩展名通常为 `.atxt` 或 `.utxt`，应在结果说明中明确实际生成文件名。
@@ -96,3 +106,4 @@ java -jar "./assets/plantuml.jar" --utxt -pipe > "output.utxt"
 - [ ] 已确认输出格式（默认 `svg`）
 - [ ] 已执行渲染命令并确认输出文件存在
 - [ ] 若为 `txt/utxt`，已参考 `./references/ascii_guide.md`
+- [ ] 已清理所有中间文件，仅保留目标输出文件
