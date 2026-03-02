@@ -1,6 +1,6 @@
 ---
 name: github-fork-sync-assistant
-description: 批量同步 GitHub 上所有 fork 仓库与上游的更新。当用户要求同步 fork、更新所有 fork 仓库、或执行类似 GitHub 界面上 "Sync fork" / "Update branch" 的操作时使用此技能。自动发现所有 fork 仓库，逐个同步上游更新，跳过存在合并冲突的仓库，并汇报完整结果。
+description: 批量同步 GitHub 上所有 fork 仓库与上游的更新，也支持指定特定仓库进行同步。当用户要求同步 fork、更新所有 fork 仓库、同步指定仓库、或执行类似 GitHub 界面上 "Sync fork" / "Update branch" 的操作时使用此技能。自动发现所有 fork 仓库或读取指定仓库列表，逐个同步上游更新，跳过存在合并冲突的仓库，并汇报完整结果。
 ---
 
 # GitHub Fork 批量同步助手
@@ -15,7 +15,9 @@ description: 批量同步 GitHub 上所有 fork 仓库与上游的更新。当�
 - "帮我更新所有 fork"
 - "把我 fork 的项目都和上游同步一下"
 - "sync all my forks"
-- 任何涉及批量同步 fork 仓库的请求
+- "同步这几个仓库: user/repo1, user/repo2"
+- "同步指定的 fork 仓库"
+- 任何涉及批量同步或指定同步 fork 仓库的请求
 
 ## 前提条件
 
@@ -50,7 +52,11 @@ description: 批量同步 GitHub 上所有 fork 仓库与上游的更新。当�
 
 执行前提条件中的检查。如果用户首次使用此技能需要提供 token，记录下来避免后续重复询问。
 
-### 第 2 步：获取所有 fork 仓库列表
+### 第 2 步：确定同步范围
+
+根据用户请求确定是**同步全部 fork** 还是**同步指定仓库**。
+
+#### 方式 A：同步全部 fork 仓库
 
 使用 `gh repo list` 列出当前用户所有 fork 仓库：
 
@@ -75,6 +81,37 @@ gh repo list --fork --json nameWithOwner,defaultBranchRef --limit 1000 --no-arch
 如果用户 fork 数量超过 1000，需要分页获取（调大 `--limit` 或多次请求）。
 
 **向用户展示** fork 仓库列表及数量，确认是否继续同步全部，或让用户选择性排除某些仓库。
+
+#### 方式 B：同步指定仓库
+
+当用户指定了具体仓库（如 `user/repo1, user/repo2`），或要同步多个特定仓库时：
+
+1. **将仓库列表写入 `assets/repos.txt`**（每行一个 `owner/repo`）：
+
+```
+user/repo1
+user/repo2
+user/repo3
+```
+
+> `repos.txt` 支持空行和 `#` 开头的注释行，会自动跳过。
+
+2. **执行同步脚本**：
+
+```bash
+bash scripts/sync_forks.sh
+```
+
+脚本会自动从 `assets/repos.txt` 读取仓库列表并逐个同步。也可以通过参数指定其他文件路径：
+
+```bash
+bash scripts/sync_forks.sh /path/to/custom-repos.txt
+```
+
+脚本执行后会在 `scripts/` 目录下生成日志文件：
+- `success.log` — 成功更新的仓库
+- `uptodate.log` — 已是最新的仓库
+- `failed.log` — 同步失败的仓库及原因
 
 ### 第 3 步：逐个同步 fork 仓库
 
@@ -182,6 +219,8 @@ gh api repos/<owner>/<repo>/compare/<default-branch>...<upstream-owner>:<default
 
 以下是 Agent 执行同步时的核心逻辑（伪代码）：
 
+#### 同步全部 fork
+
 ```
 1. 验证 gh auth status
 2. forks = gh repo list --fork --json nameWithOwner,defaultBranchRef --limit 1000 --no-archived
@@ -190,6 +229,15 @@ gh api repos/<owner>/<repo>/compare/<default-branch>...<upstream-owner>:<default
    a. 执行 gh repo sync <nameWithOwner>
    b. 根据退出码分类：成功 / 失败 / 已是最新
 5. 汇总输出结果表格
+```
+
+#### 同步指定仓库
+
+```
+1. 验证 gh auth status
+2. 将用户指定的仓库列表写入 assets/repos.txt（每行一个 owner/repo）
+3. 执行 bash scripts/sync_forks.sh
+4. 读取 scripts/ 下的日志文件，汇总输出结果表格
 ```
 
 ## 关键规则
@@ -204,9 +252,10 @@ gh api repos/<owner>/<repo>/compare/<default-branch>...<upstream-owner>:<default
 
 - [ ] `gh --version` 成功
 - [ ] `gh auth status` 显示已登录
-- [ ] 已获取 fork 仓库列表
+- [ ] 已确定同步范围（全部 / 指定仓库）
+- [ ] 如同步指定仓库：已将仓库列表写入 `assets/repos.txt`
 - [ ] 已向用户确认同步范围
-- [ ] 逐个执行同步
+- [ ] 逐个执行同步（直接调用 `gh repo sync` 或通过 `scripts/sync_forks.sh`）
 - [ ] 失败仓库已记录并跳过（未使用 `--force`）
 - [ ] 结果已按格式汇报（成功/失败/跳过三类）
 

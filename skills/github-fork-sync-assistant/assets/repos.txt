@@ -1,0 +1,2 @@
+name/repo1
+name/repo2
