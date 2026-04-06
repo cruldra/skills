@@ -1,6 +1,6 @@
 ---
 name: manual-testing
-description: Use when a tester specifies a feature or flow they want to manually test. Covers the full cycle: code analysis, test checklist generation, and step-by-step guided test execution with subagents.
+description: Use when a tester specifies a feature or flow they want to manually test. Covers the full cycle- code analysis, test checklist generation, and step-by-step guided test execution with subagents.
 ---
 
 # manual-testing
