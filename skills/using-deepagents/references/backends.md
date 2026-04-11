@@ -1,112 +1,185 @@
-# Deep Agents `backend` 说明
+# Backend 参考
 
-## 这个参数解决什么问题
+Backend 决定代理的文件存储位置和执行环境。所有 Backend 实现 `BackendProtocol`，
+提供统一的读/写/编辑/搜索接口。
 
-`backend` 决定智能体的文件世界和执行环境。
+## Backend 类型一览
 
-最容易记的理解方式：
+| Backend | Shell执行 | 持久化 | 适用场景 |
+|---------|-----------|--------|---------|
+| `StateBackend` | ❌ | 会话内 | API服务、无磁盘场景 |
+| `FilesystemBackend` | ❌ | ✅ 磁盘 | 只需读写文件 |
+| `LocalShellBackend` | ✅ 本机 | ✅ 磁盘 | 本地开发工具 |
+| `LangSmithSandbox` | ✅ 云沙箱 | 沙箱内 | 生产部署 |
+| `StoreBackend` | ❌ | ✅ 跨线程 | 多用户共享存储 |
+| `CompositeBackend` | 取决于组合 | 取决于组合 | 混合场景 |
 
-- `backend` 管“东西放哪”和“能做什么操作”
+---
 
-## 什么时候重点考虑
+## StateBackend（默认）
 
-当你开始关心下面这些问题时：
+文件存储在 LangGraph 的 agent state 中（内存），随会话生命周期存在。
+配合 `checkpointer` 可在同一线程内断点续跑。
 
-- 智能体读写的是磁盘文件还是临时状态
-- 是否允许执行 shell 命令
-- 不同路径是否要走不同存储策略
-- 是否需要自定义文件访问逻辑
+```python
+from deepagents import create_deep_agent
+from deepagents.backends import StateBackend
 
-## 最常见选择
+# 默认行为，等同于不传 backend
+agent = create_deep_agent(backend=StateBackend())
+```
 
-### `FilesystemBackend`
+**特点：**
+- 文件随会话消失，不写磁盘
+- 不支持 `execute` Shell 命令（会返回错误）
+- 适合 API 服务端部署，无需磁盘权限
+
+---
+
+## FilesystemBackend
+
+直接读写本机磁盘文件，相对路径基于 `root_dir`。
 
 ```python
 from deepagents.backends import FilesystemBackend
 
-backend = FilesystemBackend(root_dir=".")
+backend = FilesystemBackend(root_dir="/workspace")
+
+agent = create_deep_agent(backend=backend)
 ```
 
-适合：
+**参数：**
+- `root_dir`：文件根目录，所有路径相对于此解析
 
-- 本地开发
-- 示例项目
-- 需要直接读取项目目录
+> ⚠️ 安全警告：代理可以读写 `root_dir` 下任何文件。
+> 建议配合 `FilesystemPermission` 限制访问范围。
 
-### `StateBackend`
+---
 
-```python
-from deepagents.backends import StateBackend
+## LocalShellBackend
 
-backend = StateBackend
-```
-
-或：
-
-```python
-backend = lambda runtime: StateBackend(runtime)
-```
-
-适合：
-
-- 临时会话
-- Web/API 场景
-- 不想落磁盘
-
-### `LocalShellBackend`
+继承 `FilesystemBackend`，额外支持在本机执行 Shell 命令（`execute` 工具）。
 
 ```python
 from deepagents.backends import LocalShellBackend
 
-backend = LocalShellBackend(root_dir=".", virtual_mode=True)
+backend = LocalShellBackend(
+    root_dir="/workspace",    # 默认 cwd
+    execute_timeout=120,      # 命令超时秒数，默认 120
+)
+
+agent = create_deep_agent(backend=backend)
 ```
 
-适合：
+**参数：**
+- `root_dir`：文件根目录
+- `execute_timeout`：Shell 命令最大执行时间（秒）
 
-- 本地开发助手
-- 需要执行 shell 命令
+> ⚠️ 安全警告：代理可执行任意 Shell 命令，拥有当前用户权限。
+> 仅限本地开发环境使用，**不要用于生产服务**。
 
-### `CompositeBackend`
+---
+
+## LangSmithSandbox
+
+云沙箱执行环境，通过 LangSmith 托管部署使用。
 
 ```python
-from deepagents.backends import CompositeBackend, FilesystemBackend
+from deepagents.backends import LangSmithSandbox
 
-backend = CompositeBackend(
-    default=FilesystemBackend(root_dir=".", virtual_mode=True),
-    routes={
-        "/uploads/": FilesystemBackend(root_dir="./uploads", virtual_mode=True),
-    },
+backend = LangSmithSandbox()
+
+agent = create_deep_agent(backend=backend)
+```
+
+需要设置 `LANGSMITH_API_KEY` 环境变量。
+
+---
+
+## StoreBackend
+
+基于 LangGraph `BaseStore` 的持久化存储，支持跨线程/跨会话共享文件。
+适合多用户场景，每个用户有独立的存储命名空间。
+
+```python
+from deepagents.backends import StoreBackend
+from langgraph.store.memory import InMemoryStore
+
+store = InMemoryStore()
+
+backend = StoreBackend(
+    store=store,
+    # namespace_factory 决定每次调用的存储命名空间
+    namespace_factory=lambda rt: (rt.server_info.user.identity, "files"),
+)
+
+agent = create_deep_agent(
+    backend=backend,
+    store=store,
 )
 ```
 
-适合：
+**参数：**
+- `store`：`BaseStore` 实例（InMemoryStore、PostgresStore 等）
+- `namespace_factory`：接收 `Runtime`，返回命名空间元组
 
-- 不同路径走不同 backend
-- 做分层存储
-- 做路径隔离
+---
 
-### 自定义 backend
+## CompositeBackend
 
-适合：
+组合多个 Backend，按顺序代理调用。常用于同时需要文件系统和 Shell 执行：
 
-- 内置 backend 不够用
-- 要接对象存储、数据库、权限包装器、审计逻辑
+```python
+from deepagents.backends import CompositeBackend, FilesystemBackend, LocalShellBackend
 
-## 最小判断原则
+backend = CompositeBackend([
+    FilesystemBackend(root_dir="/workspace"),
+    LocalShellBackend(),
+])
 
-- 本地项目：通常先 `FilesystemBackend`
-- 临时会话：考虑 `StateBackend`
-- 需要执行命令：考虑 `LocalShellBackend`
-- 路径分层：考虑 `CompositeBackend`
+agent = create_deep_agent(backend=backend)
+```
 
-## 常见坑
+`CompositeBackend` 将操作路由到第一个能处理的 backend。
 
-- 把 `backend` 当成线程状态恢复
-- 以为换了 `StateBackend` 还能无改动使用所有磁盘路径记忆和技能
-- 没有明确需求就过早上 `CompositeBackend`
+---
 
-## 联动参数
+## FilesystemPermission（权限控制）
 
-如果你要使用 `StoreBackend(runtime)`，通常还必须一起传 `store=`。
+独立于 Backend，通过 `permissions` 参数传入 `create_deep_agent`，拦截工具调用：
 
-细节见 `references/runtime-infra.md`。
+```python
+from deepagents import FilesystemPermission, create_deep_agent
+
+agent = create_deep_agent(
+    backend=LocalShellBackend(root_dir="/"),
+    permissions=[
+        # 先匹配先生效，第一条命中即止
+        FilesystemPermission(
+            operations=["write"],
+            paths=["/workspace/**"],
+            mode="allow",
+        ),
+        FilesystemPermission(
+            operations=["write"],
+            paths=["/**"],
+            mode="deny",   # 阻止写入其他所有路径
+        ),
+    ],
+)
+```
+
+**`FilesystemPermission` 参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `operations` | `list["read" \| "write"]` | 控制的操作类型 |
+| `paths` | `list[str]` | glob 路径模式，需以 `/` 开头 |
+| `mode` | `"allow" \| "deny"` | 匹配时的处理方式，默认 `"allow"` |
+
+`read` 覆盖：`ls`, `read_file`, `glob`, `grep`
+`write` 覆盖：`write_file`, `edit_file`
+
+规则按声明顺序评估，**第一条匹配的规则生效**。若无规则匹配，默认允许。
+
+子代理继承父代理权限，除非在 `SubAgent` spec 中显式声明 `permissions` 字段（完全替换，不合并）。
