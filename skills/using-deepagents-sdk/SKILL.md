@@ -1,9 +1,9 @@
 ---
-name: using-deepagents
+name: using-deepagents-sdk
 description: Use when integrating the deepagents SDK into a Python project — creating agents, configuring backends, adding subagents, middleware, memory, or skills. Also use when debugging deepagents agents or choosing between StateBackend, FilesystemBackend, and LocalShellBackend.
 ---
 
-# using-deepagents
+# using-deepagents-sdk
 
 ## 概述
 
