@@ -115,3 +115,46 @@ def load_settings() -> dict[str, Any]:
 ```
 
 **理由**：这种路径不是运行时临时值，而是模块级稳定事实。集中定义为大写常量能减少重复、避免不同位置推导层级不一致，也让后续目录结构变化时只改一个地方。
+
+## PYN-006：只记录日志不处理的异常不要捕获
+
+**适用范围**：初始化逻辑、外部依赖检查、存储/网络/数据库操作、任务执行等需要调用方决定失败策略的代码。
+
+**不规范写法**：
+
+```python
+try:
+    if not minio_client.bucket_exists(bucket):
+        minio_client.make_bucket(bucket)
+        logger.info("MinIO bucket 已创建", bucket=bucket)
+except Exception as exc:
+    logger.warning(
+        "MinIO bucket 检查失败，依赖对象存储的工具可能不可用",
+        bucket=bucket,
+        error_type=exc.__class__.__name__,
+    )
+```
+
+如果 `except` 里只是记录日志，没有恢复状态、转换异常、返回明确降级结果或补充必要上下文后重新抛出，就不要捕获这个异常。
+
+**规范写法**：
+
+```python
+if not minio_client.bucket_exists(bucket):
+    minio_client.make_bucket(bucket)
+    logger.info("MinIO bucket 已创建", bucket=bucket)
+```
+
+如果确实需要补充上下文，记录后也要继续抛出：
+
+```python
+try:
+    if not minio_client.bucket_exists(bucket):
+        minio_client.make_bucket(bucket)
+        logger.info("MinIO bucket 已创建", bucket=bucket)
+except MinioError:
+    logger.exception("MinIO bucket 初始化失败", bucket=bucket)
+    raise
+```
+
+**理由**：只打日志不处理会把启动失败、依赖不可用或配置错误伪装成“程序还能继续跑”。日志不是恢复策略。异常应该主动抛给上层，让调用方或开发人员决定是失败退出、重试、降级还是转换成业务错误。
