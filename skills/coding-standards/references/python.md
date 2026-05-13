@@ -158,3 +158,44 @@ except MinioError:
 ```
 
 **理由**：只打日志不处理会把启动失败、依赖不可用或配置错误伪装成“程序还能继续跑”。日志不是恢复策略。异常应该主动抛给上层，让调用方或开发人员决定是失败退出、重试、降级还是转换成业务错误。
+
+## PYN-007：Python 包名和模块名只使用单个单词
+
+**适用范围**：公司 Python 项目中的包目录名和模块文件名。
+
+**不规范写法**：
+
+```text
+agent_compiler_deepagents/
+compile_context.py
+model_loader.py
+node_translators.py
+placeholder_expand.py
+tool_loader.py
+```
+
+不要用 snake_case 给包或模块命名，即使 PEP 没有明确禁止这种写法。
+
+**规范写法**：
+
+```text
+compiler/
+context.py
+models.py
+nodes.py
+placeholders.py
+tools.py
+```
+
+如果单个单词无法表达清楚，优先通过上层包结构表达上下文：
+
+```text
+agent/
+  compiler/
+    context.py
+    models.py
+    nodes.py
+    tools.py
+```
+
+**理由**：这是公司明确采用的 Python 命名风格。包和模块名保持单词级别，能避免冗长路径和重复上下文；语义应通过目录层级组织，而不是把多个概念塞进一个 snake_case 名称里。
