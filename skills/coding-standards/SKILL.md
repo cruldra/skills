@@ -21,6 +21,7 @@ description: Use when implementing, modifying, refactoring, or reviewing code an
 ## 事实文档
 
 - 写 Python 代码或审查 Python 变更时，读取 [references/python.md](references/python.md)。
+- 写 TypeScript 或 React 代码、审查 TS/TSX 变更时，读取 [references/typescript.md](references/typescript.md)。
 - 用户指出新的反例和规范写法时，把它沉淀到对应事实文档；优先记录具体例子，不把个人经验改写成空泛口号。
 - 当事实文档与通用最佳实践冲突时，以事实文档为准，除非当前项目已有更强的本地约定。
 
@@ -66,6 +67,6 @@ description: Use when implementing, modifying, refactoring, or reviewing code an
 
 ## 待补充
 
-- 语言专项规范：TypeScript、Shell、SQL 等。
+- 语言专项规范：Shell、SQL 等。
 - 场景专项规范：新功能、bugfix、重构、review 反馈处理。
 - 反例库：常见不规范代码、风险解释和推荐改法。

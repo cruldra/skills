@@ -79,28 +79,33 @@ except MinioError:
 
 **理由**：日志不是恢复策略，只记录不处理会把失败伪装成程序还能继续运行。
 
-## PYN-003：Python 包名和模块名只使用单个单词
+## PYN-003：Python 包名可用 snake_case，模块名只使用单个单词
 
 **反例**：
 
 ```text
 agent_compiler_deepagents/
-compile_context.py
-model_loader.py
-node_translators.py
-placeholder_expand.py
-tool_loader.py
+  compile_context.py
+  model_loader.py
+  node_translators.py
+  placeholder_expand.py
+  tool_loader.py
 ```
 
 **规范**：
 
 ```text
-agent/
-  compiler/
+agent_compiler_deepagents/
+  compile_context/
     context.py
-    models.py
-    nodes.py
-    tools.py
+  model/
+    loader.py
+  node/
+    translators.py
+  placeholder/
+    expand.py
+  tool/
+    loader.py
 ```
 
-**理由**：公司 Python 命名风格要求包和模块用单个单词，语义通过目录层级表达。
+**理由**：公司 Python 命名风格允许包名用 snake_case 承载领域语义，但模块名仍应保持单词化并通过目录层级表达组合语义。
