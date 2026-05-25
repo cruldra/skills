@@ -22,7 +22,28 @@ Not for: merging PRs, pushing to main, or rewriting issue bodies beyond the `spx
 
 ## State JSON
 
-KanbanPanel persists per-issue orchestration state as a JSON blob in the issue's **last comment**. Schema (14 fields like `column`, `sessionId`, `pr`, `branch`, `implementStatus`, `autoReview`) lives at `schemas/state-json.schema.json` in superpowers-vscode. spx embeds the schema and **validates before any write** — bad input fails fast with a JSON-pointer field path.
+KanbanPanel persists per-issue orchestration state as a JSON blob in the issue's **last comment**. spx embeds the schema and **validates before any write** — bad input fails fast with a JSON-pointer field path.
+
+Full draft-07 schema: `references/state-json.schema.json` (alongside this SKILL.md; copy of `schemas/state-json.schema.json` in superpowers-vscode). 14 fields, `additionalProperties: false`. Quick reference:
+
+| Field | Type | Notes |
+|---|---|---|
+| `column` | enum | `todo` \| `in-progress` \| `review` \| `done` |
+| `sessionId` | string | brainstorm cc session id |
+| `implementSessionId` | string | implement cc session id |
+| `reviewSessionId` | string | review codex thread_id |
+| `profilePath` | string | cc `--settings` path |
+| `specFile` | string | repo-relative `.md` path (must contain `/`) |
+| `planFile` | string | repo-relative `.md` path (must contain `/`) |
+| `pr` | string | linked PR number |
+| `prMerged` | boolean | PR merged? |
+| `branch` | string | feature branch name |
+| `worktreePath` | string | worktree path |
+| `implementStatus` | enum | `running` \| `done` \| `failed` |
+| `color` | string | terminal ThemeColor id |
+| `autoReview` | boolean | per-issue auto-review override |
+
+Read the full JSON schema file when you need exact patterns or want to validate locally.
 
 ## Quick Reference
 
