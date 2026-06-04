@@ -26,6 +26,11 @@
       "description": "审查阶段的会话 id（v1 存 codex thread id），用于 webhook synchronize 时 resume。",
       "minLength": 1
     },
+    "testSessionId": {
+      "type": "string",
+      "description": "测试阶段的 Claude Code session id；PR 合并后手动启动的测试会话，用于 resume。",
+      "minLength": 1
+    },
     "profilePath": {
       "type": "string",
       "description": "创建工单时使用的 Claude settings 配置文件绝对路径，resume 时作为 --settings 传入。",
@@ -42,6 +47,12 @@
       "description": "本工单的 plan 文档路径，相对 workspace，必须形如 `dir/.../name.md`。",
       "minLength": 1,
       "pattern": "^[^\\s]+/[^\\s]+\\.md$"
+    },
+    "prDiffFile": {
+      "type": "string",
+      "description": "本工单的 PR 变更摘要文件路径，相对 workspace，必须位于 docs/pr-diff/ 下。",
+      "minLength": 1,
+      "pattern": "^docs/pr-diff/[^\\s]+\\.md$"
     },
     "pr": {
       "type": "string",
